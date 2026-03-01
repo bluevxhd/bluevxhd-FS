@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GoogleGenAI, Modality } from "@google/genai";
 import { 
@@ -40,11 +40,14 @@ export default function App() {
   const [isReady, setIsReady] = useState(false);
   const [audioBase64, setAudioBase64] = useState<string | null>(null);
 
-  // 1. Pre-fetch audio data
   useEffect(() => {
     const fetchAudio = async () => {
       try {
-        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        // Menggunakan VITE_ prefix agar terbaca di Vercel
+        const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+        if (!apiKey) return;
+
+        const ai = new GoogleGenAI({ apiKey });
         const response = await ai.models.generateContent({
           model: "gemini-2.5-flash-preview-tts",
           contents: [{ parts: [{ text: 'Welcome To Blue Five Six Web' }] }],
@@ -65,12 +68,10 @@ export default function App() {
     };
     fetchAudio();
     
-    // Timer for minimal loading state
     const timer = setTimeout(() => setIsReady(true), 2000);
     return () => clearTimeout(timer);
   }, []);
 
-  // 2. Handle Enter (User Interaction)
   const handleEnter = () => {
     if (audioBase64) {
       const audio = new Audio(`data:audio/wav;base64,${audioBase64}`);
@@ -157,10 +158,8 @@ export default function App() {
       </AnimatePresence>
 
       <main className="min-h-screen flex flex-col items-center justify-center p-6 relative">
-        {/* Background Glow */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-600/10 blur-[120px] rounded-full pointer-events-none" />
         
-        {/* Pixel Tree Container */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -239,4 +238,4 @@ export default function App() {
       </main>
     </div>
   );
-    }
+          }

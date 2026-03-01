@@ -113,35 +113,48 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#050505] text-white font-sans flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      {/* Background Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-600/10 blur-[120px] rounded-full pointer-events-none" />
       
+      {/* Pixel Tree Container */}
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="mb-8 relative"
       >
+        {/* Pixel Art Tree Container with Enhanced Glow */}
         <div 
           onClick={() => setIsColored(!isColored)}
           className={cn(
             "w-32 h-32 rounded-3xl flex items-center justify-center border-4 relative overflow-hidden group cursor-pointer transition-all duration-500",
-            isColored ? "bg-green-500/20 border-green-500/30 shadow-[0_0_30px_rgba(34,197,94,0.2)]" : "bg-blue-500/20 border-blue-500/30"
+            isColored 
+              ? "bg-green-500/20 border-green-500/40 shadow-[0_0_50px_rgba(34,197,94,0.4)]" 
+              : "bg-blue-500/20 border-blue-500/40 shadow-[0_0_50px_rgba(59,130,246,0.3)]"
           )}
         >
+          {/* Pixelated Tree Representation */}
           <div className="relative z-10 flex flex-col items-center">
+            {/* Simple Pixel Tree SVG with Enhanced Glow */}
             <svg width="64" height="64" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className={cn(
               "transition-all duration-500",
-              isColored ? "drop-shadow-[0_0_8px_rgba(34,197,94,0.5)]" : "drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]"
+              isColored 
+                ? "drop-shadow-[0_0_12px_rgba(34,197,94,0.8)] drop-shadow-[0_0_25px_rgba(34,197,94,0.4)]" 
+                : "drop-shadow-[0_0_12px_rgba(59,130,246,0.8)] drop-shadow-[0_0_25px_rgba(59,130,246,0.4)]"
             )}>
+              {/* Leaves */}
               <rect x="6" y="2" width="4" height="2" fill={isColored ? "#4ADE80" : "#60A5FA"} />
               <rect x="4" y="4" width="8" height="2" fill={isColored ? "#22C55E" : "#3B82F6"} />
               <rect x="2" y="6" width="12" height="2" fill={isColored ? "#16A34A" : "#2563EB"} />
               <rect x="4" y="8" width="8" height="2" fill={isColored ? "#15803D" : "#1D4ED8"} />
+              {/* Trunk */}
               <rect x="7" y="10" width="2" height="4" fill={isColored ? "#78350F" : "#1E3A8A"} />
             </svg>
           </div>
+          {/* Scanline effect for pixel feel */}
           <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%]" />
         </div>
         
+        {/* Floating Badge */}
         <div className={cn(
           "absolute -bottom-2 -right-2 p-2 rounded-xl border-2 border-[#050505] shadow-lg transition-colors duration-500",
           isColored ? "bg-green-600" : "bg-blue-600"
@@ -150,6 +163,7 @@ export default function App() {
         </div>
       </motion.div>
 
+      {/* Profile Info */}
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -164,6 +178,7 @@ export default function App() {
         </p>
       </motion.div>
 
+      {/* Social Links Grid */}
       <div className="flex flex-col gap-3 w-full items-center">
         {links.map((link, index) => (
           <motion.div
@@ -178,6 +193,7 @@ export default function App() {
         ))}
       </div>
 
+      {/* Footer */}
       <motion.p 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -188,4 +204,4 @@ export default function App() {
       </motion.p>
     </div>
   );
-}
+  }

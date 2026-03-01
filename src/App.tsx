@@ -43,11 +43,20 @@ export default function App() {
   useEffect(() => {
     const fetchAudio = async () => {
       try {
-        // Menggunakan VITE_ prefix agar terbaca di Vercel
-        const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-        if (!apiKey) return;
+        let apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+        
+        // Cara aman mendeteksi process tanpa menyebabkan error build
+        const g = globalThis as any;
+        if (!apiKey && g.process && g.process.env) {
+          apiKey = g.process.env.GEMINI_API_KEY;
+        }
 
-        const ai = new GoogleGenAI({ apiKey });
+        if (!apiKey || apiKey === "undefined" || apiKey === "null" || apiKey.trim() === "") {
+          console.warn("Gemini API Key is missing. TTS disabled.");
+          return;
+        }
+
+        const ai = new GoogleGenAI({ apiKey: apiKey.trim() });
         const response = await ai.models.generateContent({
           model: "gemini-2.5-flash-preview-tts",
           contents: [{ parts: [{ text: 'Welcome To Blue Five Six Web' }] }],
@@ -238,4 +247,4 @@ export default function App() {
       </main>
     </div>
   );
-          }
+  }

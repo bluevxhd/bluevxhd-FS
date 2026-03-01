@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
+import { GoogleGenAI, Modality } from "@google/genai";
 import { 
   MessageSquare, 
   MessageCircle, 
   Users, 
   Video, 
   ExternalLink,
-  TreeDeciduous
+  TreeDeciduous,
+  Volume2
 } from 'lucide-react';
 import { cn } from './lib/utils';
 
@@ -35,11 +37,66 @@ const SocialLink = ({ href, icon: Icon, label, color }: { href: string, icon: an
 export default function App() {
   const [isColored, setIsColored] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [audioBase64, setAudioBase64] = useState<string | null>(null);
+  const hasPlayed = useRef(false);
 
-  React.useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 2000);
-    return () => clearTimeout(timer);
+  // 1. Ambil data suara lebih awal (Pre-fetch)
+  useEffect(() => {
+    const fetchAudio = async () => {
+      try {
+        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        const response = await ai.models.generateContent({
+          model: "gemini-2.5-flash-preview-tts",
+          contents: [{ parts: [{ text: 'Welcome To BlueFiveSix Web' }] }],
+          config: {
+            responseModalities: [Modality.AUDIO],
+            speechConfig: {
+              voiceConfig: {
+                prebuiltVoiceConfig: { voiceName: 'Zephyr' },
+              },
+            },
+          },
+        });
+        const data = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+        if (data) setAudioBase64(data);
+      } catch (e) {
+        console.error("TTS Error:", e);
+      }
+    };
+    fetchAudio();
   }, []);
+
+  // 2. Fungsi untuk memutar suara
+  const playAudio = () => {
+    if (!audioBase64 || hasPlayed.current) return;
+    
+    const audio = new Audio(`data:audio/wav;base64,${audioBase64}`);
+    audio.play()
+      .then(() => {
+        hasPlayed.current = true;
+      })
+      .catch((err) => {
+        console.log("Autoplay blocked, waiting for interaction...");
+        // Jika diblokir, tunggu klik pertama di window
+        const handleFirstClick = () => {
+          audio.play().then(() => {
+            hasPlayed.current = true;
+            window.removeEventListener('click', handleFirstClick);
+          });
+        };
+        window.addEventListener('click', handleFirstClick);
+      });
+  };
+
+  // 3. Jalankan saat loading selesai
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+      // Coba putar otomatis
+      setTimeout(playAudio, 500);
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, [audioBase64]);
 
   const links = [
     {
@@ -64,7 +121,7 @@ export default function App() {
       label: "TikTok Profile",
       href: "https://www.tiktok.com/@bluevxhdminecraft?_r=1&_t=ZS-93MpQWdXriZ",
       icon: Video,
-      color: "hover:shadow-[0_0_20px_rgba(236,72,153,0.1)]"
+      color: "hover:shadow-[0_0_20_rgba(236,72,153,0.1)]"
     }
   ];
 
@@ -122,7 +179,6 @@ export default function App() {
         animate={{ opacity: 1, y: 0 }}
         className="mb-8 relative"
       >
-        {/* Pixel Art Tree Container with Enhanced Glow */}
         <div 
           onClick={() => setIsColored(!isColored)}
           className={cn(
@@ -132,29 +188,23 @@ export default function App() {
               : "bg-blue-500/20 border-blue-500/40 shadow-[0_0_50px_rgba(59,130,246,0.3)]"
           )}
         >
-          {/* Pixelated Tree Representation */}
           <div className="relative z-10 flex flex-col items-center">
-            {/* Simple Pixel Tree SVG with Enhanced Glow */}
             <svg width="64" height="64" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className={cn(
               "transition-all duration-500",
               isColored 
                 ? "drop-shadow-[0_0_12px_rgba(34,197,94,0.8)] drop-shadow-[0_0_25px_rgba(34,197,94,0.4)]" 
                 : "drop-shadow-[0_0_12px_rgba(59,130,246,0.8)] drop-shadow-[0_0_25px_rgba(59,130,246,0.4)]"
             )}>
-              {/* Leaves */}
               <rect x="6" y="2" width="4" height="2" fill={isColored ? "#4ADE80" : "#60A5FA"} />
               <rect x="4" y="4" width="8" height="2" fill={isColored ? "#22C55E" : "#3B82F6"} />
               <rect x="2" y="6" width="12" height="2" fill={isColored ? "#16A34A" : "#2563EB"} />
               <rect x="4" y="8" width="8" height="2" fill={isColored ? "#15803D" : "#1D4ED8"} />
-              {/* Trunk */}
               <rect x="7" y="10" width="2" height="4" fill={isColored ? "#78350F" : "#1E3A8A"} />
             </svg>
           </div>
-          {/* Scanline effect for pixel feel */}
           <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%]" />
         </div>
         
-        {/* Floating Badge */}
         <div className={cn(
           "absolute -bottom-2 -right-2 p-2 rounded-xl border-2 border-[#050505] shadow-lg transition-colors duration-500",
           isColored ? "bg-green-600" : "bg-blue-600"
@@ -178,7 +228,7 @@ export default function App() {
         </p>
       </motion.div>
 
-      {/* Social Links Grid */}
+      {/* Links Grid */}
       <div className="flex flex-col gap-3 w-full items-center">
         {links.map((link, index) => (
           <motion.div
@@ -204,4 +254,4 @@ export default function App() {
       </motion.p>
     </div>
   );
-  }
+      }
